@@ -28,6 +28,7 @@ class PredictionHistory(tf.keras.callbacks.Callback):
 	def __init__(self, neural_network, input_vec):
 		self.neural_network = neural_network
 		self.input_vec = input_vec
+		self.predictions = []
 
 	def on_train_begin(self, logs={}):
 		self.predictions = []

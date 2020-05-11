@@ -185,6 +185,82 @@ def plot_validation_accuracy_over_input_length_both():
 	plt.close()
 
 
+def plot_predictions_over_time(num_repetitions, batch_means_split, filename):
+	"""
+	:return: _imgs/poisson/mlp_adam_prediction_over_time.pdf
+	"""
+	mean_idle_slots = 2
+	mean_busy_slots = 4
+	channel = PoissonProcessChannelModel(mean_idle_slots, mean_busy_slots)
+	print('rho=' + str(channel.get_utilization()))
+
+	sample_length = 1  # We input a single observation into the neural network.
+	neural_network = TumuluruMLPAdam(lookback_length=sample_length)
+	num_timeslots = 2500
+	num_samples = int(num_timeslots / sample_length)
+
+	# Prepare idle channel input vector.
+	input_vec_idle = np.zeros((1, sample_length))
+
+	# And the same for a busy channel.
+	input_vec_busy = np.zeros((1, sample_length))
+	for i in range(len(input_vec_busy)):
+		input_vec_busy[0, i] = 1
+
+	predictions_idle = np.zeros((num_repetitions, num_samples))
+	predictions_busy = np.zeros((num_repetitions, num_samples))
+	for rep in range(num_repetitions):
+		print(str(rep+1) + " / " + str(num_repetitions))
+		# This keeps track of what the neural network predicts for an idle channel after every training batch.
+		prediction_history_idle = PredictionHistory(neural_network, input_vec_idle)
+		# And the prediction on a now-busy channel.
+		prediction_history_busy = PredictionHistory(neural_network, input_vec_busy)
+
+		training_data, training_labels = generate_data(channel, num_timeslots, sample_length)
+		neural_network.get_keras_model().fit(x=training_data, y=training_labels, batch_size=1, callbacks=[prediction_history_idle, prediction_history_busy])
+		predictions_idle[rep] = np.reshape(prediction_history_idle.predictions, len(prediction_history_idle.predictions))
+		predictions_busy[rep] = np.reshape(prediction_history_busy.predictions, len(prediction_history_idle.predictions))
+	# Collect batch means.
+	idle_batch_means = columnwise_batch_means(predictions_idle, batch_means_split)
+	busy_batch_means = columnwise_batch_means(predictions_busy, batch_means_split)
+
+	# Calculate confidence intervals on the batch means.
+	idle_ci_means = np.zeros(num_timeslots)
+	idle_ci_minus = np.zeros(num_timeslots)
+	idle_ci_plus = np.zeros(num_timeslots)
+	busy_ci_means = np.zeros(num_timeslots)
+	busy_ci_minus = np.zeros(num_timeslots)
+	busy_ci_plus = np.zeros(num_timeslots)
+	confidence = 0.95
+	for timeslot in range(num_samples):
+		idle_ci_means[timeslot], idle_ci_minus[timeslot], idle_ci_plus[timeslot] = calculate_confidence_interval(idle_batch_means[:,timeslot], confidence)
+		busy_ci_means[timeslot], busy_ci_minus[timeslot], busy_ci_plus[timeslot] = calculate_confidence_interval(busy_batch_means[:,timeslot], confidence)
+	x = range(len(idle_ci_means))
+
+	plt.rcParams.update({'font.size': 32})
+	plt.ylabel('Prediction value $h_\\Theta$')
+	plt.xlabel('Training sample [#]')
+
+	plt.plot(x, idle_ci_means, color='lightblue', label="$h_\\Theta{}(idle)$")
+	plt.fill_between(x, idle_ci_minus, idle_ci_plus, facecolor='lightblue', alpha=0.25)
+
+	plt.plot(x, busy_ci_means, color='orange', label="$h_\\Theta{}(busy)$")
+	plt.fill_between(x, busy_ci_minus, busy_ci_plus, facecolor='orange', alpha=0.25)
+
+	plt.axhline(y=1-channel.get_utilization(), color='k', linestyle='-', label="$1-\\rho$")
+	plt.axhline(y=channel.get_utilization(), color='k', linestyle='--', label="$\\rho$")
+	plt.ylim(0, 1)
+	plt.legend()
+
+	fig = plt.gcf()
+	fig.set_size_inches((13, 10), forward=False)
+	fig.savefig(filename, dpi=500)
+	print("File saved to " + filename)
+	plt.close()
+
+
 if __name__ == '__main__':
 	# plot_training_phase()  # _imgs/poisson/mlp_adam.pdf
-	plot_validation_accuracy_over_input_length_both()  # _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
+	# plot_validation_accuracy_over_input_length_both()  # _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
+	# plot_predictions_over_time(1, 1, "_imgs/poisson/mlp_adam_prediction_over_time.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time.pdf
+	plot_predictions_over_time(12, 3, "_imgs/poisson/mlp_adam_prediction_over_time-averages.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time-averages.pdf
