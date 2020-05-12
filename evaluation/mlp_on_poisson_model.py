@@ -260,7 +260,7 @@ def plot_predictions_over_time(num_repetitions, batch_means_split, filename):
 
 
 if __name__ == '__main__':
-	# plot_training_phase()  # _imgs/poisson/mlp_adam.pdf
-	# plot_validation_accuracy_over_input_length_both()  # _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
-	# plot_predictions_over_time(1, 1, "_imgs/poisson/mlp_adam_prediction_over_time.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time.pdf
+	plot_training_phase()  # _imgs/poisson/mlp_adam.pdf
+	plot_validation_accuracy_over_input_length_both()  # _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
+	plot_predictions_over_time(1, 1, "_imgs/poisson/mlp_adam_prediction_over_time.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time.pdf
 	plot_predictions_over_time(12, 3, "_imgs/poisson/mlp_adam_prediction_over_time-averages.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time-averages.pdf
