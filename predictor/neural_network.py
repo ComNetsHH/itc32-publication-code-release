@@ -105,7 +105,7 @@ class LSTMNetwork(NeuralNetwork):
 	"""
 	LSTM Recurrent Neural Network.
 	"""
-	def __init__(self, num_channels, num_hidden_neurons, learning_rate, time_steps, num_hidden_layers=1, use_softmax=True):
+	def __init__(self, num_channels, num_hidden_neurons, learning_rate, time_steps, num_hidden_layers=1, use_softmax=False):
 		"""
 		:param num_channels: Number of channels to predict on.
 		:param num_hidden_neurons: Vector of hidden neurons per layer: first entry is for the LSTM layer, all following for dense layers.
