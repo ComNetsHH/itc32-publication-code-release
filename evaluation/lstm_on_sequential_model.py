@@ -168,7 +168,6 @@ def plot_prediction_over_time():
 	print("Graph saved to " + filename)
 
 
-
 if __name__ == '__main__':
-	plot_lstm_loss_per_timeslot()  # _imgs/sequential/lstm_loss_per_timeslot.pdf
-	# plot_prediction_over_time()  # _imgs/sequential/lstm_prediction_over_timeslots.pdf
+	# plot_lstm_loss_per_timeslot()  # _imgs/sequential/lstm_loss_per_timeslot.pdf
+	plot_prediction_over_time()  # _imgs/sequential/lstm_prediction_over_timeslots.pdf
