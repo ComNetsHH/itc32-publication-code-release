@@ -477,50 +477,10 @@ def compare_sample_lengths():
 	print("Graph saved to " + filename)
 
 
-def try_stateful_stuff():
-	num_channels = 2
-	interrogator_channel_index = 0
-	response_channel_index = 1
-	dme_request_frequency = 5  # send a DME request every x ms
-	training_time = 10000
-	sample_lengths = [1, 2]  # milliseconds
-	validation_time = 500
-	simtime_max = training_time + validation_time
-	util.verbose_print.verbose = False
-
-	x_gs = 260*1000
-	y_gs = 150*1000
-	# 0.5ms propagation delay to ground station
-	x_as_1 = 260*1000
-	y_as_1 = 0
-	# 0.5ms propagation delay to ground station
-	x_dme_1 = 260*1000
-	y_dme_1 = 300*1000
-
-	learning_rate = 0.0005
-	num_hidden_layers = 2
-	num_neurons = [200, 150]
-	num_repetitions = 2
-
-	accuracy_mat = np.zeros((len(sample_lengths), 3))
-	confidence = 0.95
-
-	training_data, training_labels, validation_data, validation_labels = get_training_data(x_as_1, y_as_1, [800, 1], x_gs, y_gs, x_dme_1, y_dme_1, [800, -1], interrogator_channel_index, response_channel_index, dme_request_frequency, training_time, validation_time, num_channels, sample_lengths[0])
-
-	print(training_data.shape[1])
-
-	n_batch = len(training_data)
-
-	model = tf.keras.Sequential()
-	model.add(tf.keras.layers.LSTM(units=num_neurons[0], batch_input_shape=(1, 1, 2), stateful=True, activation='tanh', recurrent_activation='sigmoid', return_sequences=False))
-	model.add(tf.keras.layers.Dense(units=num_channels, name="output_layer"))
-	model.compile(optimizer=tf.train.AdamOptimizer(learning_rate=0.0005), loss='mean_squared_error', metrics=['binary_accuracy'])
-	model.fit(x=training_data, y=training_labels, shuffle=False, batch_size=1)
-
 if __name__ == '__main__':
 	# plot_learning_two_signals()
 	# verify_prediction()
-	plot_online_learning()  # _imgs/dme/lstm_online_learning.pdf
+	# plot_online_learning()  # _imgs/dme/lstm_online_learning.pdf
 	# validate_training_data()
 	# validate_training_data_sample_length_1()
 	# compare_sample_lengths()

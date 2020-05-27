@@ -124,6 +124,41 @@ class PoissonProcessChannelModel(BaseChannelModel):
 		return self.mean_busy_slots / (self.mean_busy_slots + self.mean_idle_slots)
 
 
+class TransitionProbPoissonProcessChannelModel(BaseChannelModel):
+	def __init__(self, p, q):
+		BaseChannelModel.__init__(self, num_channels=1)
+		self.p = p  # Transition probability idle->busy
+		self.q = q  # Transition probability busy->idle
+		self.steady_state = [q/(p+q), p/(p+q)]  # Probabilities to be in idle / busy states.
+		if np.random.random() <= self.steady_state[0]:
+			self.current_state = 0  # Start in idle state
+		else:
+			self.current_state = 1  # Start in busy state
+
+	def __is_busy__(self):
+		return self.current_state == 1
+
+	def update(self):
+		transition_prob = self.p if self.current_state == 0 else self.q
+		if np.random.random() <= transition_prob:
+			self.current_state = 1 if self.current_state == 0 else 0
+
+	def get_state_vector(self):
+		return [1 if self.__is_busy__() else 0]
+
+	def get_steady_state(self):
+		"""
+		:return: A vector [P(being in the idle state), P(being in the busy state)]
+		"""
+		return self.steady_state
+
+	def get_expectation(self):
+		"""
+		:return: A vector [E(number of idle time slots), E(number of busy time slots)]
+		"""
+		return [1/self.p, 1/self.q]
+
+
 class InteractiveChannelModel(BaseChannelModel):
 	"""
 	The state of the radio spectrum from the viewpoint of one user.

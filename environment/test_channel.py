@@ -71,3 +71,38 @@ class TestInteractiveChannel(unittest.TestCase):
 		self.assertFalse(self.channel.is_busy(self.channel.get_current_timeslot() + 1, 0))
 		self.channel.access(0, self.dme)
 		self.assertTrue(self.channel.is_busy(self.channel.get_current_timeslot() + 1, 0))
+
+
+class TestTransitionProbPoissonProcessChannelModel(unittest.TestCase):
+	def setUp(self):
+		self.p = 0.3
+		self.q = 0.4
+		self.channel = TransitionProbPoissonProcessChannelModel(self.p, self.q)
+
+	def test_expectation_value(self):
+		computed_expectation_vec = self.channel.get_expectation()
+		self.assertEqual(computed_expectation_vec[0], 1/self.p)
+		self.assertEqual(computed_expectation_vec[1], 1/self.q)
+
+	def test_steady_state(self):
+		computed_steady_state_vec = self.channel.get_steady_state()
+		self.assertEqual(computed_steady_state_vec[0], self.q/(self.q + self.p))
+		self.assertEqual(computed_steady_state_vec[1], self.p/(self.q + self.p))
+		# These are probabilities, so they better sum to one.
+		self.assertEqual(computed_steady_state_vec[0] + computed_steady_state_vec[1], 1.0)
+
+	def test_operation(self):
+		num_timeslots = 100000
+		has_been_busy_vec = np.zeros(num_timeslots)
+		for i in range(num_timeslots):
+			self.channel.update()
+			has_been_busy_vec[i] = self.channel.get_state_vector()[0]
+		# Steady state gives us the expected fraction of timeslots that are busy.
+		expected_busy_slots = self.channel.get_steady_state()[1]
+		# This is the observed number of busy timeslots.
+		actually_busy_slots = np.sum(has_been_busy_vec) / num_timeslots
+		# Which won't be exactly identical.
+		difference = abs(expected_busy_slots - actually_busy_slots)
+		# So allow for some small tolerance.
+		tolerance = 0.01  # 1%
+		self.assertLess(difference, tolerance)
