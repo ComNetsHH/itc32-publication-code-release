@@ -189,10 +189,9 @@ def plot_predictions_over_time(num_repetitions, batch_means_split, filename):
 	"""
 	:return: _imgs/poisson/mlp_adam_prediction_over_time.pdf
 	"""
-	mean_idle_slots = 3
-	mean_busy_slots = 1
-	channel = PoissonProcessChannelModel(mean_idle_slots, mean_busy_slots)
-	print('rho=' + str(channel.get_utilization()))
+	p = 0.1
+	q = 0.1
+	channel = TransitionProbPoissonProcessChannelModel(p, q)
 
 	sample_length = 1  # We input a single observation into the neural network.
 	neural_network = TumuluruMLPAdam(lookback_length=sample_length)
@@ -247,8 +246,8 @@ def plot_predictions_over_time(num_repetitions, batch_means_split, filename):
 	plt.plot(x, busy_ci_means, color='orange', label="$h_\\Theta{}(busy)$")
 	plt.fill_between(x, busy_ci_minus, busy_ci_plus, facecolor='orange', alpha=0.25)
 
-	plt.axhline(y=1-channel.get_utilization(), color='k', linestyle='-', label="$1-\\rho$")
-	plt.axhline(y=channel.get_utilization(), color='k', linestyle='--', label="$\\rho$")
+	plt.axhline(y=channel.p, color='k', linestyle='-', label="$p$")
+	plt.axhline(y=1-channel.q, color='k', linestyle='--', label="$1-q$")
 	plt.ylim(0, 1)
 	plt.legend()
 
@@ -263,4 +262,4 @@ if __name__ == '__main__':
 	# plot_training_phase()  # _imgs/poisson/mlp_adam.pdf
 	# plot_validation_accuracy_over_input_length_both()  # _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
 	plot_predictions_over_time(1, 1, "_imgs/poisson/mlp_adam_prediction_over_time.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time.pdf
-	# plot_predictions_over_time(12, 3, "_imgs/poisson/mlp_adam_prediction_over_time-averages.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time-averages.pdf
+	plot_predictions_over_time(12, 3, "_imgs/poisson/mlp_adam_prediction_over_time-averages.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time-averages.pdf
