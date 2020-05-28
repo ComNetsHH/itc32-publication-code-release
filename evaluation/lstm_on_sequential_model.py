@@ -120,7 +120,7 @@ def plot_prediction_over_time():
 	switching_prob = 0.75
 	sample_length = 1
 	learning_rate = 0.005
-	num_training_samples = 250 * num_channels
+	num_training_samples = 500 * num_channels
 	num_hidden_layers = 2
 	num_neurons = [200, 150]
 
@@ -151,13 +151,13 @@ def plot_prediction_over_time():
 
 	plt.rcParams.update({'font.size': 32})
 	plt.xlabel('Timeslot [#]')
-	plt.scatter(range(1, validation_timeslots+1), prediction_vec, label="$h_\Theta{}$(1st channel idle)", linewidths=3)
+	plt.scatter(range(1, validation_timeslots+1), prediction_vec, label="$h_\Theta{}$(1st channel idle)", linewidth=5)
 	for i in range(len(first_channel_actually_idle)):
 		if i==0:
 			plt.axvline(first_channel_actually_idle[i], color='gray', alpha=0.5, linestyle='--', label='1st channel idle')
 		else:
 			plt.axvline(first_channel_actually_idle[i], color='gray', alpha=0.5, linestyle='--')
-	plt.axhline(switching_prob, label="switching probability", color='black', alpha=0.5, linestyle='--')
+	plt.axhline(switching_prob, label="switching probability", color='black', alpha=0.9, linestyle='dotted')
 	plt.yticks([0, 0.25, 0.5, 0.75])
 	plt.legend()
 	filename = "_imgs/sequential/lstm_prediction_over_timeslots.pdf"
