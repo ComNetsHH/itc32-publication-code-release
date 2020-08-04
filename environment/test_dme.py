@@ -1,7 +1,7 @@
 import unittest
 from environment.dme import *
 import util.verbose_print
-from agent.neural_network import *
+from predictor.neural_network import *
 
 class TestDME(unittest.TestCase):
 	def setUp(self):

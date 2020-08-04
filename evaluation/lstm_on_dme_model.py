@@ -175,120 +175,6 @@ def validate_training_data_sample_length_1():
 	print(validation_labels)
 
 
-def plot_learning_two_signals():
-	num_channels = 2
-	interrogator_channel_index = 0
-	response_channel_index = 1
-	dme_request_frequency = 5 # send a DME request every x ms
-	simtime_max = 5000
-	sample_length = dme_request_frequency  # milliseconds
-	validation_time = int(simtime_max/10)
-	while validation_time % sample_length != 0:
-		validation_time = validation_time + 1
-		simtime_max = simtime_max + 1
-	util.verbose_print.verbose = False
-	num_training_samples = int(simtime_max / sample_length)
-
-	training_data, training_labels, _, _ = get_training_data(260*1000, 0, [800, 1], 260*1000, 150*1000, 260*1000, 300*1000, [800, -1], interrogator_channel_index, response_channel_index, dme_request_frequency, simtime_max, 0, num_channels, sample_length)
-
-	plt.rcParams.update({'font.size': 28})
-	plt.ylabel('channel index')
-	plt.xlabel('time slot')
-	observations = np.zeros((sample_length*5, num_channels))
-	for sample in range(5):
-		for i in range(sample_length):
-			observations[sample*sample_length + i] = training_data[sample,i,:]
-	plt.imshow(np.transpose(observations), cmap='Greys')
-	filename = "_imgs/dme/lstm/channel_access_pattern.pdf"
-	fig = plt.gcf()
-	fig.set_size_inches((16, 4), forward=False)
-	fig.savefig(filename, dpi=500)
-	plt.close()
-	print("Graph saved to " + filename)
-
-	learning_rate = 0.0005
-	num_hidden_layers = 2
-	num_neurons = [200, 150]
-
-	num_repetitions = 20
-	accuracy_mat = np.zeros((num_repetitions, num_training_samples))
-	for rep in range(num_repetitions):
-		neural_network = LSTMNetwork(num_channels, num_neurons, learning_rate, sample_length, num_hidden_layers, use_softmax=False)
-		accuracy_vec = BinaryAccuracyHistory()
-		neural_network.get_keras_model().fit(training_data, training_labels, batch_size=1, callbacks=[accuracy_vec])
-		accuracy_mat[rep] = accuracy_vec.accuracies
-
-	# Compute batch-means for every data point.
-	batch_means_split = 4
-	batch_means = columnwise_batch_means(accuracy_mat, batch_means_split)
-	# Compute range for each data point using confidence intervals.
-	sample_means = np.zeros(num_training_samples)
-	sample_means_minus = np.zeros(num_training_samples)
-	sample_means_plus = np.zeros(num_training_samples)
-	confidence = 0.95
-	for data_point in range(num_training_samples):
-		sample_means[data_point], sample_means_minus[data_point], sample_means_plus[data_point] = calculate_confidence_interval(batch_means[:,data_point], confidence)
-
-	x = range(len(sample_means))
-	plt.rcParams.update({'font.size': 32})
-	plt.xlabel('Sample [#]')
-	plt.ylabel('Accuracy')
-	plt.plot(x, sample_means)
-	plt.fill_between(x, sample_means_minus, sample_means_plus, alpha=0.5)
-	filename = "_imgs/dme/lstm/lstm_training_accuracy.pdf"
-	fig = plt.gcf()
-	fig.set_size_inches((16, 10), forward=False)
-	fig.savefig(filename, dpi=500)
-	plt.close()
-	print("Graph saved to " + filename)
-
-
-def verify_prediction():
-	num_channels = 2
-	interrogator_channel_index = 0
-	response_channel_index = 1
-	dme_request_frequency = 5 # send a DME request every x ms
-	simtime_max = 1000
-	sample_length = dme_request_frequency  # milliseconds
-	validation_time = int(simtime_max/10)
-	while validation_time % sample_length != 0:
-		validation_time = validation_time + 1
-		simtime_max = simtime_max + 1
-
-	util.verbose_print.verbose = False
-
-	training_data, training_labels, validation_data, validation_labels = get_training_data(260*1000, 0, [800, 1], 260*1000, 150*1000, 260*1000, 300*1000, [800, -1], interrogator_channel_index, response_channel_index, dme_request_frequency, simtime_max-validation_time, validation_time, num_channels, sample_length)
-
-	learning_rate = 0.0005
-	num_hidden_layers = 2
-	num_neurons = [200, 150]
-	neural_network = LSTMNetwork(num_channels, num_neurons, learning_rate, sample_length, num_hidden_layers, use_softmax=False)
-	neural_network.get_keras_model().fit(training_data, training_labels, batch_size=1)
-
-	num_dme_pulses = 0
-	correct_pulse_predictions = 0
-	for i in range(len(validation_data)):
-		validation_sample = validation_data[i]
-		print(np.sum(validation_sample))
-		predictions = neural_network.get_keras_model().predict(np.reshape(validation_sample, (1, sample_length, num_channels)))
-		for j in range(0, len(validation_sample)):
-			current_observation = validation_sample[j]
-			current_label = validation_labels[i,j]
-			current_prediction = np.rint(predictions[0,j,:])
-			if int(np.sum(current_label)) == 2:
-				num_dme_pulses = num_dme_pulses + 1
-				print(current_observation, end=" -> ")
-				print(current_prediction, end=" should be ")
-				print(current_label, end=" ")
-				if (current_prediction == current_label).all():
-					print("✔")
-					correct_pulse_predictions = correct_pulse_predictions + 1
-				else:
-					print("⨯")
-
-	print(str(correct_pulse_predictions / num_dme_pulses * 100) + "% correct.")
-
-
 def plot_online_learning():
 	"""
 	:return: _imgs/dme/lstm_online_learning.pdf
@@ -424,6 +310,9 @@ def plot_online_learning():
 
 
 def compare_sample_lengths():
+	"""
+	:return: _imgs/dme/lstm_accuracy_over_sample_lengths.pdf
+	"""
 	num_channels = 2
 	interrogator_channel_index = 0
 	response_channel_index = 1
@@ -469,7 +358,7 @@ def compare_sample_lengths():
 	plt.errorbar(sample_lengths, accuracy_mat[:, 0], accuracy_mat[:, 2] - accuracy_mat[:, 0], fmt='o', color='black', ecolor='lightgray', elinewidth=3, capsize=0)
 	plt.xticks(sample_lengths)
 
-	filename = "_imgs/dme/lstm/lstm_accuracy_over_sample_lengths.pdf"
+	filename = "_imgs/dme/lstm_accuracy_over_sample_lengths.pdf"
 	fig = plt.gcf()
 	fig.set_size_inches((16, 10), forward=False)
 	fig.savefig(filename, dpi=500)
@@ -478,10 +367,6 @@ def compare_sample_lengths():
 
 
 if __name__ == '__main__':
-	# plot_learning_two_signals()
-	# verify_prediction()
-	# plot_online_learning()  # _imgs/dme/lstm_online_learning.pdf
+	plot_online_learning()  # _imgs/dme/lstm_online_learning.pdf
 	# validate_training_data()
 	# validate_training_data_sample_length_1()
-	# compare_sample_lengths()
-	# try_stateful_stuff()
