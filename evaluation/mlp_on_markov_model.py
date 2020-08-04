@@ -110,7 +110,7 @@ def run_repeatedly_with_validation(sample_length, mean_idle_slots, mean_busy_slo
 
 def plot_training_phase():
 	"""
-	:return: _imgs/poisson/mlp_adam.pdf
+	:return: _imgs/markov/mlp_adam.pdf
 	"""
 	mean_idle_slots = 5  # Expectation value for Geometric distribution for idle timeslots
 	mean_busy_slots = 10  # Expectation value for Geometric distribution for busy timeslots
@@ -139,7 +139,7 @@ def plot_training_phase():
 		plt.fill_between(xVec[i], ymVec[i], ypVec[i], facecolor=colors[i], alpha=0.5)
 	plt.legend()
 
-	filename = "_imgs/poisson/mlp_adam.pdf"
+	filename = "_imgs/markov/mlp_adam.pdf"
 	fig = plt.gcf()
 	fig.set_size_inches((12, 10), forward=False)
 	fig.savefig(filename, dpi=500)
@@ -149,7 +149,7 @@ def plot_training_phase():
 
 def plot_validation_accuracy_over_input_length_both():
 	"""
-	:return: _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
+	:return: _imgs/markov/mlp_adam_validation_over_input_lengths_both.pdf
 	"""
 	mean_idle_slots = [2, 22]  # Expectation value for Geometric distribution for idle timeslots
 	mean_busy_slots = [4, 46]  # Expectation value for Geometric distribution for busy timeslots
@@ -177,7 +177,7 @@ def plot_validation_accuracy_over_input_length_both():
 	plt.legend()
 	plt.xticks(sample_lengths)
 
-	filename = "_imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf"
+	filename = "_imgs/markov/mlp_adam_validation_over_input_lengths_both.pdf"
 	fig = plt.gcf()
 	fig.set_size_inches((13, 10), forward=False)
 	fig.savefig(filename, dpi=500)
@@ -187,7 +187,7 @@ def plot_validation_accuracy_over_input_length_both():
 
 def plot_predictions_over_time(num_repetitions, batch_means_split, filename):
 	"""
-	:return: _imgs/poisson/mlp_adam_prediction_over_time.pdf
+	:return: _imgs/markov/mlp_adam_prediction_over_time.pdf
 	"""
 	p = 0.1
 	q = 0.1
@@ -259,7 +259,7 @@ def plot_predictions_over_time(num_repetitions, batch_means_split, filename):
 
 
 if __name__ == '__main__':
-	# plot_training_phase()  # _imgs/poisson/mlp_adam.pdf
-	# plot_validation_accuracy_over_input_length_both()  # _imgs/poisson/mlp_adam_validation_over_input_lengths_both.pdf
-	plot_predictions_over_time(1, 1, "_imgs/poisson/mlp_adam_prediction_over_time.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time.pdf
-	plot_predictions_over_time(12, 3, "_imgs/poisson/mlp_adam_prediction_over_time-averages.pdf")  # _imgs/poisson/mlp_adam_prediction_over_time-averages.pdf
+	plot_training_phase()  # _imgs/markov/mlp_adam.pdf
+	plot_validation_accuracy_over_input_length_both()  # _imgs/markov/mlp_adam_validation_over_input_lengths_both.pdf
+	plot_predictions_over_time(1, 1, "_imgs/markov/mlp_adam_prediction_over_time.pdf")  # _imgs/markov/mlp_adam_prediction_over_time.pdf
+	plot_predictions_over_time(12, 3, "_imgs/markov/mlp_adam_prediction_over_time-averages.pdf")  # _imgs/markov/mlp_adam_prediction_over_time-averages.pdf
